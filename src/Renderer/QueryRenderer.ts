@@ -202,7 +202,7 @@ class QueryRenderChild extends MarkdownRenderChild {
             return;
         }
 
-        this.observer = new IntersectionObserver(([entry]) => {
+        this.observer = new (this.containerEl.win as Window & typeof globalThis).IntersectionObserver(([entry]) => {
             if (!this.containerEl.isShown()) {
                 return;
             }
@@ -300,7 +300,7 @@ class QueryRenderChild extends MarkdownRenderChild {
         // So note that any results we have already drawn are now out-of-date:
         this.isCacheChangedSinceLastRedraw = true;
 
-        requestAnimationFrame(async () => {
+        this.containerEl.win.requestAnimationFrame(async () => {
             if (this.isRendering) {
                 return;
             }
