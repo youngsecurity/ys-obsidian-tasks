@@ -21,7 +21,7 @@ import { TasksFile } from '../Scripting/TasksFile';
 import { DateFallback } from '../DateTime/DateFallback';
 import type { Task } from '../Task/Task';
 import { type BacklinksEventHandler, type EditButtonClickHandler, QueryResultsRenderer } from './QueryResultsRenderer';
-import { TaskLineRenderer, createAndAppendElement } from './TaskLineRenderer';
+import { TaskLineRenderer } from './TaskLineRenderer';
 
 type RenderParams = { tasks: Task[]; state: State };
 
@@ -99,7 +99,7 @@ class QueryRenderChild extends MarkdownRenderChild {
 
     private renderEventRef: EventRef | undefined;
     private reloadSearchResultsEventRef: EventRef | undefined;
-    private queryReloadTimeout: NodeJS.Timeout | undefined;
+    private queryReloadTimeout: number | undefined;
 
     private isCacheChangedSinceLastRedraw = false;
     private observer: IntersectionObserver | null = null;
@@ -202,7 +202,7 @@ class QueryRenderChild extends MarkdownRenderChild {
             return;
         }
 
-        this.observer = new (this.containerEl.win as Window & typeof globalThis).IntersectionObserver(([entry]) => {
+        this.observer = new (this.containerEl.win as Window & typeof window).IntersectionObserver(([entry]) => {
             if (!this.containerEl.isShown()) {
                 return;
             }
@@ -254,7 +254,7 @@ class QueryRenderChild extends MarkdownRenderChild {
         }
 
         if (this.queryReloadTimeout !== undefined) {
-            clearTimeout(this.queryReloadTimeout);
+            window.clearTimeout(this.queryReloadTimeout);
         }
 
         // Cancel any pending debounced renders
@@ -279,7 +279,7 @@ class QueryRenderChild extends MarkdownRenderChild {
 
         const millisecondsToMidnight = midnight.getTime() - now.getTime();
 
-        this.queryReloadTimeout = setTimeout(() => {
+        this.queryReloadTimeout = window.setTimeout(() => {
             this.queryResultsRenderer.query = getQueryForQueryRenderer(
                 this.queryResultsRenderer.source,
                 GlobalQuery.getInstance(),
@@ -340,7 +340,7 @@ class QueryRenderChild extends MarkdownRenderChild {
     }
 
     private async renderResults(state: State, tasks: Task[]) {
-        const content = createAndAppendElement('div', this.containerEl);
+        const content = this.containerEl.createDiv();
         await this.queryResultsRenderer.render(state, tasks, content);
 
         this.containerEl.firstChild?.replaceWith(content);
